@@ -15,7 +15,8 @@ class Packet(abc.ABC):
         bs = b''
         fs = self.__dict__
         for v in fs.values():
-            bs += v.to_bytes()
+            if isinstance(v, fields.Field):
+                bs += v.to_bytes()
         return bs
 
     @classmethod
@@ -26,6 +27,8 @@ class Packet(abc.ABC):
         index = 0
 
         for key, value in fs.items():
+            if not isinstance(value, fields.Field):
+                continue
             size = value.size
             value = value.__class__.from_bytes(bs[index:(index + size)])
             p.__setattr__(key, value)
@@ -38,6 +41,25 @@ class Packet(abc.ABC):
         for f in self.__dict__.values():
             size += len(f)
         return size
+
+    def __iter__(self):
+        self.__field_n_ = 0
+        return self
+
+    def __next__(self):
+        fs = list(self.__dict__.values())
+        if self.__field_n_ == len(fs) - 1:
+            raise StopIteration
+        result = fs[self.__field_n_]
+        self.__field_n_ += 1
+        return result
+
+    def __eq__(self, other):
+        return self.__class__ == other.__class__ and self.__dict__ == other.__dict__
+
+    def __str__(self):
+        fs = [str(f) for f in self]
+        return f"{self.__class__.__name__}: {fs}"
 
 
 class OkPacket(Packet):

@@ -21,6 +21,12 @@ class Field(abc.ABC):
     def __len__(self):
         return self.size
 
+    def __str__(self):
+        return f"({self.__class__.__name__}: {~self})"
+
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
+
 
 class IntField(Field, abc.ABC):
     def __init__(self, value: int):
