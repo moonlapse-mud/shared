@@ -1,5 +1,5 @@
 import abc
-import fields
+from . import fields
 
 
 class Packet(abc.ABC):
