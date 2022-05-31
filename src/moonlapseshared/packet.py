@@ -40,10 +40,6 @@ class Packet(abc.ABC):
         return size
 
 
-class AggregatePacket(Packet):
-    pid = 0x0000
-
-
 class OkPacket(Packet):
     pid = 0x0001
 

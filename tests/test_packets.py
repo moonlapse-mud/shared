@@ -8,8 +8,8 @@ from src.moonlapseshared.packet import *
 
 class PacketTests(unittest.TestCase):
     def test_pid(self):
-        p = AggregatePacket()
-        self.assertEqual(AggregatePacket.pid, ~p.pid)
+        p = DenyPacket()
+        self.assertEqual(DenyPacket.pid, ~p.pid)
 
     def test_from_to_bytes(self):
         p = MovePacket(0xFF, 1)
