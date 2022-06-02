@@ -4,9 +4,6 @@ from . import fields
 class Flags:
     ENCRYPT = 0b0000_0001
 
-# 0000 0000 0000 0000 0000 0000 0011 0010
-
-# 0000 0000 0000 1000 0000 0000
 
 class Packet:
     pid: int    # to override. The unique ID of this packet.

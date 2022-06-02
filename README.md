@@ -6,6 +6,14 @@ This is the shared package between the client and server. It contains the packet
 
 This section contains minor documentation regarding how to implement the features in this repository.
 
+### Install Package
+
+To include this package in your environment, run:
+
+```
+$ pip3 install git+https://github.com/moonlapse-mud/shared#egg=moonlapse-shared
+```
+
 ### Packet
 
 The Moonlapse Packet design consists of a header and a payload. The header is constructed as follows:
