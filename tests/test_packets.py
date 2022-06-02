@@ -81,6 +81,14 @@ class PacketTests(unittest.TestCase):
         bs2 = mp2.to_bytes()
         self.assertEqual(bs, bs2)
 
+    def test_flags(self):
+        p = OkPacket(Flags.ENCRYPT)
+        bs = p.to_bytes()
+        p2 = from_bytes(bs)
+        bs2 = p2.to_bytes()
+        self.assertEqual(p, p2)
+        self.assertEqual(bs, bs2)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -2,7 +2,7 @@ from . import fields
 
 
 class Flags:
-    ENCRYPT = 0x1   # 0000 0001
+    ENCRYPT = 0b0000_0001
 
 # 0000 0000 0000 0000 0000 0000 0011 0010
 
@@ -14,7 +14,6 @@ class Packet:
     def __init__(self, flags=0):
         self.pid = self.__class__.pid
         self.flags = flags
-        # self.pid: fields.ShortField = fields.ShortField(self.__class__.pid)
 
     def get_fields(self):
         d = {}
