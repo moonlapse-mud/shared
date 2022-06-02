@@ -1,7 +1,6 @@
-import abc
 
 
-class Field(abc.ABC):
+class Field:
     size: int   # to override. The size in bytes of this field
 
     def __init__(self):
@@ -25,10 +24,10 @@ class Field(abc.ABC):
         return f"({self.__class__.__name__}: {~self})"
 
     def __eq__(self, other):
-        return self.__dict__ == other.__dict__
+        return self.__class__ == other.__class__ and self.__dict__ == other.__dict__
 
 
-class IntField(Field, abc.ABC):
+class IntField(Field):
     def __init__(self, value: int):
         super().__init__()
         self.value = value

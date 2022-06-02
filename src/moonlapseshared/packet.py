@@ -1,34 +1,62 @@
-import abc
 from . import fields
 
 
-class Packet(abc.ABC):
-    pid: int    # to override. The unique ID of this packet
+class Flags:
+    ENCRYPT = 0x1   # 0000 0001
 
-    def __init__(self):
-        self.pid: fields.ShortField = fields.ShortField(self.__class__.pid)
+# 0000 0000 0000 0000 0000 0000 0011 0010
+
+# 0000 0000 0000 1000 0000 0000
+
+class Packet:
+    pid: int    # to override. The unique ID of this packet.
+
+    def __init__(self, flags=0):
+        self.pid = self.__class__.pid
+        self.flags = flags
+        # self.pid: fields.ShortField = fields.ShortField(self.__class__.pid)
+
+    def get_fields(self):
+        d = {}
+        for key, value in self.__dict__.items():
+            if isinstance(value, fields.Field):
+                d[key] = value
+        return d
 
     def to_bytes(self) -> bytes:
         """
         Converts this packet to a byte array in network-byte order.
         """
         bs = b''
-        fs = self.__dict__
-        for v in fs.values():
-            if isinstance(v, fields.Field):
-                bs += v.to_bytes()
+
+        # attach header information
+        # padding + flags + pid + length
+        flags = self.flags << 24
+        pid = self.pid << 4
+        length = len(self)
+        header = fields.LongField(flags | pid | length)
+
+        bs += header.to_bytes()
+
+        # add all payload fields
+        fs = self.get_fields()
+        for f in fs.values():
+            bs += f.to_bytes()
         return bs
 
     @classmethod
     def from_bytes(cls, bs: bytes):
         p = cls()
-        fs = p.__dict__
+        fs = p.get_fields()
 
-        index = 0
+        # extract header
+        header = int.from_bytes(bs[0:4], 'big')
+        p.flags = header >> 24
+        p.pid = (header & 0xFFF8) >> 4
+
+        index = 4
 
         for key, value in fs.items():
-            if not isinstance(value, fields.Field):
-                continue
             size = value.size
             value = value.__class__.from_bytes(bs[index:(index + size)])
             p.__setattr__(key, value)
@@ -38,7 +66,7 @@ class Packet(abc.ABC):
 
     def __len__(self):
         size = 0
-        for f in self.__dict__.values():
+        for f in self.get_fields().values():
             size += len(f)
         return size
 
@@ -47,8 +75,8 @@ class Packet(abc.ABC):
         return self
 
     def __next__(self):
-        fs = list(self.__dict__.values())
-        if self.__field_n_ == len(fs) - 1:
+        fs = list(self.get_fields().values())
+        if self.__field_n_ == len(fs):
             raise StopIteration
         result = fs[self.__field_n_]
         self.__field_n_ += 1
@@ -73,8 +101,8 @@ class DenyPacket(Packet):
 class MovePacket(Packet):
     pid = 0x0003
 
-    def __init__(self, dy=0, dx=0):
-        super().__init__()
+    def __init__(self, dy=0, dx=0, flags=0):
+        super().__init__(flags=flags)
         self.dy: fields.CharField = fields.CharField(dy)
         self.dx: fields.CharField = fields.CharField(dx)
 
@@ -94,7 +122,9 @@ if '__packet_py_packet_types' not in globals().keys():
 
 
 def from_bytes(bs: bytes) -> Packet:
-    pid = int.from_bytes(bs[0:2], 'big')
+    header = int.from_bytes(bs[0:4], 'big')
+    pid = (header & 0xFFF8) >> 4
+
     for ptype in __packet_py_packet_types:
         t = globals()[ptype]
         if pid == t.pid:
