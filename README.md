@@ -10,7 +10,7 @@ This section contains minor documentation regarding how to implement the feature
 
 The Moonlapse Packet design consists of a header and a payload. The header is constructed as follows:
 
-**Header: 32 bytes**
+**Header: 32 bits**
 - Flags: 8 bits
 - ID: 13 bits
 - Length: 11 bits
