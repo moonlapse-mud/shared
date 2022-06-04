@@ -6,6 +6,28 @@ class Flags:
     ENCRYPT = 0b0000_0001
 
 
+class Header:
+    def __init__(self, pid, flags, length):
+        self.pid = pid
+        self.flags = flags
+        self.length = length
+
+    def to_bytes(self) -> bytes:
+        flags = self.flags << 24
+        pid = self.pid << 11
+        length = self.length
+        header = fields.LongField(flags | pid | length)
+        return header.to_bytes()
+
+    @classmethod
+    def from_bytes(cls, bs: bytes) -> 'Header':
+        header = int.from_bytes(bs[0:4], 'big')
+        flags = header >> 24
+        pid = (header & 0xFFF8) >> 11
+        length = header & 0xFF
+        return cls(pid, flags, length)
+
+
 class Packet:
     pid: int    # to override. The unique ID of this packet.
 
@@ -39,11 +61,7 @@ class Packet:
             bs = crypto.encrypt(bs, pubkey)
 
         # attach header information
-        # padding + flags + pid + length
-        flags = self.flags << 24
-        pid = self.pid << 11
-        length = len(bs)
-        header = fields.LongField(flags | pid | length)
+        header = Header(self.pid, self.flags, len(bs))
 
         return header.to_bytes() + bs
 
@@ -53,9 +71,9 @@ class Packet:
         fs = p.get_fields()
 
         # extract header
-        header = int.from_bytes(bs[0:4], 'big')
-        p.flags = header >> 24
-        p.pid = (header & 0xFFF8) >> 11
+        header = Header.from_bytes(bs[0:4])
+        p.flags = header.flags
+        p.pid = header.pid
 
         bs = bs[4:]
 
@@ -133,8 +151,8 @@ if '__packet_py_packet_types' not in globals().keys():
 
 
 def from_bytes(bs: bytes, privkey=None) -> Packet:
-    header = int.from_bytes(bs[0:4], 'big')
-    pid = (header & 0xFFF8) >> 11
+    header = Header.from_bytes(bs[0:4])
+    pid = header.pid
 
     for ptype in __packet_py_packet_types:
         t = globals()[ptype]

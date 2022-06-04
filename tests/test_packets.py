@@ -87,6 +87,10 @@ class PacketTests(unittest.TestCase):
         p2 = from_bytes(bs, priv)
         self.assertEqual(p, p2)
 
+    def test_new_header(self):
+        h = Header(MovePacket.pid, Flags.ENCRYPT, 2)
+        self.assertEqual(h.to_bytes(), b'\x01\x00\x18\x02')
+
 
 if __name__ == '__main__':
     unittest.main()
