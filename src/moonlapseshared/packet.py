@@ -1,4 +1,5 @@
 from . import fields
+from . import crypto
 
 
 class Flags:
@@ -19,38 +20,48 @@ class Packet:
                 d[key] = value
         return d
 
-    def to_bytes(self) -> bytes:
+    def to_bytes(self, pubkey=None) -> bytes:
         """
         Converts this packet to a byte array in network-byte order.
         """
         bs = b''
 
-        # attach header information
-        # padding + flags + pid + length
-        flags = self.flags << 24
-        pid = self.pid << 4
-        length = len(self)
-        header = fields.LongField(flags | pid | length)
-
-        bs += header.to_bytes()
+        encrypted = self.flags & Flags.ENCRYPT
 
         # add all payload fields
         fs = self.get_fields()
         for f in fs.values():
             bs += f.to_bytes()
-        return bs
+
+        if encrypted and pubkey:
+            bs = crypto.encrypt(bs, pubkey)
+
+        # attach header information
+        # padding + flags + pid + length
+        flags = self.flags << 24
+        pid = self.pid << 11
+        length = len(bs)
+        header = fields.LongField(flags | pid | length)
+
+        return header.to_bytes() + bs
 
     @classmethod
-    def from_bytes(cls, bs: bytes):
+    def from_bytes(cls, bs: bytes, privkey=None):
         p = cls()
         fs = p.get_fields()
 
         # extract header
         header = int.from_bytes(bs[0:4], 'big')
         p.flags = header >> 24
-        p.pid = (header & 0xFFF8) >> 4
+        p.pid = (header & 0xFFF8) >> 11
 
-        index = 4
+        bs = bs[4:]
+
+        encrypted = p.flags & Flags.ENCRYPT
+        if encrypted and privkey:
+            bs = crypto.decrypt(bs, privkey)
+
+        index = 0
 
         for key, value in fs.items():
             size = value.size
@@ -119,7 +130,7 @@ if '__packet_py_packet_types' not in globals().keys():
 
 def from_bytes(bs: bytes) -> Packet:
     header = int.from_bytes(bs[0:4], 'big')
-    pid = (header & 0xFFF8) >> 4
+    pid = (header & 0xFFF8) >> 11
 
     for ptype in __packet_py_packet_types:
         t = globals()[ptype]

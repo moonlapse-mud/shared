@@ -7,6 +7,10 @@ from src.moonlapseshared.packet import *
 from src.moonlapseshared.crypto import *
 
 
+current_dir = os.path.dirname(os.path.realpath(sys.argv[0]))
+pub, priv = crypto.load_rsa_keypair(current_dir)
+
+
 class PacketTests(unittest.TestCase):
     def test_pid(self):
         p = DenyPacket()
@@ -35,13 +39,9 @@ class PacketTests(unittest.TestCase):
         self.assertEqual(len(p), 2)
 
     def test_encrypt(self):
-        key = 'sixteen byte key'
-        c = AESCipher(key)
-        p = MovePacket(1, 0)
-        data = p.to_bytes().decode('ASCII')
-        enc = c.encrypt(data)
-        dec = c.decrypt(enc)
-        p2 = MovePacket.from_bytes(dec.encode('ASCII'))
+        p = MovePacket(1, 0, flags=Flags.ENCRYPT)
+        bs = p.to_bytes(pub)
+        p2 = MovePacket.from_bytes(bs, priv)
         self.assertEqual(p, p2)
 
     def test_print_char_field(self):
