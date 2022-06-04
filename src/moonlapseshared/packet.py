@@ -33,7 +33,9 @@ class Packet:
         for f in fs.values():
             bs += f.to_bytes()
 
-        if encrypted and pubkey:
+        if encrypted:
+            if not pubkey:
+                raise AttributeError("Packet was encrypted, but public key was not supplied")
             bs = crypto.encrypt(bs, pubkey)
 
         # attach header information
@@ -58,7 +60,9 @@ class Packet:
         bs = bs[4:]
 
         encrypted = p.flags & Flags.ENCRYPT
-        if encrypted and privkey:
+        if encrypted:
+            if not privkey:
+                raise AttributeError("Packet was encrypted, but private key was not supplied")
             bs = crypto.decrypt(bs, privkey)
 
         index = 0
@@ -128,12 +132,12 @@ if '__packet_py_packet_types' not in globals().keys():
     __packet_py_packet_types.remove('Packet')
 
 
-def from_bytes(bs: bytes) -> Packet:
+def from_bytes(bs: bytes, privkey=None) -> Packet:
     header = int.from_bytes(bs[0:4], 'big')
     pid = (header & 0xFFF8) >> 11
 
     for ptype in __packet_py_packet_types:
         t = globals()[ptype]
         if pid == t.pid:
-            return t.from_bytes(bs)
+            return t.from_bytes(bs, privkey)
     raise Exception(f"{pid} not a registered packet id.")

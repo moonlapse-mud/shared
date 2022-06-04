@@ -76,18 +76,16 @@ class PacketTests(unittest.TestCase):
 
     def test_header(self):
         mp = MovePacket(dy=1, dx=0, flags=Flags.ENCRYPT)
-        bs = mp.to_bytes()
-        mp2 = MovePacket.from_bytes(bs)
-        bs2 = mp2.to_bytes()
-        self.assertEqual(bs, bs2)
+        bs = mp.to_bytes(pub)
+        mp2 = MovePacket.from_bytes(bs, priv)
+        bs2 = mp2.to_bytes(pub)
+        self.assertEqual(bs[0:4], bs2[0:4])
 
     def test_flags(self):
         p = OkPacket(Flags.ENCRYPT)
-        bs = p.to_bytes()
-        p2 = from_bytes(bs)
-        bs2 = p2.to_bytes()
+        bs = p.to_bytes(pub)
+        p2 = from_bytes(bs, priv)
         self.assertEqual(p, p2)
-        self.assertEqual(bs, bs2)
 
 
 if __name__ == '__main__':
