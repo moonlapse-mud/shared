@@ -91,6 +91,20 @@ class PacketTests(unittest.TestCase):
         h = Header(MovePacket.pid, Flags.ENCRYPT, 2)
         self.assertEqual(h.to_bytes(), b'\x01\x00\x18\x02')
 
+    def test_str_field(self):
+        sf = fields.String20Field("daddy")
+        bs = sf.to_bytes()
+        sf2 = fields.String20Field.from_bytes(bs)
+        bs2 = sf2.to_bytes()
+        self.assertEqual(sf, sf2)
+        self.assertEqual(bs, bs2)
+
+    def test_login_packet(self):
+        lp = LoginPacket("damo", "123", Flags.ENCRYPT)
+        bs = lp.to_bytes(pub)
+        lp2 = LoginPacket.from_bytes(bs, priv)
+        self.assertEqual(lp, lp2)
+
 
 if __name__ == '__main__':
     unittest.main()

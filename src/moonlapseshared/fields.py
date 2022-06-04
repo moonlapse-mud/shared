@@ -82,3 +82,29 @@ class LongLongField(IntField):
 
     def __init__(self, value: int):
         super().__init__(value)
+
+
+class StringFixedField(Field):
+    """
+    Fixed-sized string
+    """
+
+    def __init__(self, value: str):
+        super().__init__()
+        if len(value) > 20:
+            raise AttributeError("Value longer than acceptable size")
+        self.value = value
+
+    def to_bytes(self) -> bytes:
+        value = self.value.ljust(self.size, '\0')
+        return value.encode('ASCII')
+
+    @classmethod
+    def from_bytes(cls, bs: bytes):
+        value = bs.decode('ASCII')
+        value = value.rstrip('\0')
+        return cls(value)
+
+
+class String20Field(StringFixedField):
+    size = 20

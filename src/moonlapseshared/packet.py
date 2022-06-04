@@ -136,6 +136,23 @@ class MovePacket(Packet):
         self.dx: fields.CharField = fields.CharField(dx)
 
 
+class LoginPacket(Packet):
+    pid = 0x0004
+
+    def __init__(self, username="", password="", flags=0):
+        super().__init__(flags)
+        self.username = fields.String20Field(username)
+        self.password = fields.String20Field(password)
+
+
+class RegisterPacket(Packet):
+    pid = 0x0005
+
+    def __init__(self, username="", password="", flags=0):
+        super().__init__(flags)
+        self.username = fields.String20Field(username)
+        self.password = fields.String20Field(password)
+
 #
 # ALL PACKETS MUST LIVE ABOVE THIS LINE
 #
