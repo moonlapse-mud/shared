@@ -126,6 +126,16 @@ class OkPacket(Packet):
 class DenyPacket(Packet):
     pid = 0x0002
 
+    # deny reasons
+    LOGIN_PLAYER_DOESNT_EXIST = 0
+    LOGIN_INCORRECT_PASSWORD = 1
+    REGISTER_PLAYER_ALREADY_EXISTS = 2
+    REGISTER_TOO_LONG = 3
+
+    def __init__(self, reason=0, flags=0):
+        super().__init__(flags)
+        self.reason = fields.ShortField(reason)
+
 
 class MovePacket(Packet):
     pid = 0x0003
