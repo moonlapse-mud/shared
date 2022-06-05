@@ -127,10 +127,11 @@ class DenyPacket(Packet):
     pid = 0x0002
 
     # deny reasons
-    LOGIN_PLAYER_DOESNT_EXIST = 0
-    LOGIN_INCORRECT_PASSWORD = 1
-    REGISTER_PLAYER_ALREADY_EXISTS = 2
-    REGISTER_TOO_LONG = 3
+    UNSPECIFIED = 0
+    LOGIN_PLAYER_DOESNT_EXIST = 1
+    LOGIN_INCORRECT_PASSWORD = 2
+    REGISTER_PLAYER_ALREADY_EXISTS = 3
+    REGISTER_TOO_LONG = 4
 
     def __init__(self, reason=0, flags=0):
         super().__init__(flags)
