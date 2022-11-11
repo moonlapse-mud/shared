@@ -15,6 +15,10 @@ def load_rsa_keypair(directory: str) -> Tuple[rsa.key.PublicKey, rsa.key.Private
     these files will be created for you in the supplied directory and their contents will be filled
     from a generated key-pair.
     """
+
+    # creates directory if doesn't already exist
+    os.makedirs(directory, exist_ok=True)
+
     public_key_filename = os.path.join(directory, "id_rsa.pub")
     private_key_filename = os.path.join(directory, "rsa_private_key.pem")
     bit_length: int = 512   # Only 512 works
